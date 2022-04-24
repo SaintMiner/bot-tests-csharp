@@ -14,33 +14,41 @@ public class Program
 
     public static Task Main(string[] args) => new Program().MainAsync();
 
+    /* Starting ticker every configured seconds */
     public async Task Ticker()
     {
         while (true)
         {
-            TickGuild();
+            Console.WriteLine("TICK");
             await Task.Delay(DotNetEnv.Env.GetInt("TICK_INTERVAL_SECONDS") * 1000);
         }
     }
 
-    public void TickGuild()
+    /* Getting all users */
+    public async Task GetUsersList()
     {
-        Console.WriteLine("TICK");
+        var guilds = _client.Guilds.ToList();
+        Console.WriteLine("==== USER LIST ====");
+        // Instead foreach use select to await all loops
+        var tasks = guilds.Select(async delegate(SocketGuild guild)
+        {
+            Console.WriteLine($"= Guild: {guild.Name} =");
+            var users = await guild.GetUsersAsync().FlattenAsync();
+            foreach (var guildUser in users)
+            {
+                Console.WriteLine(guildUser.DisplayName);
+            }
+        });
+        await Task.WhenAll(tasks);
+        Console.WriteLine("===================");
     }
     
+    /* Starting bot */
     public async Task MainAsync()
     {
-        DotNetEnv.Env.Load();
+        DotNetEnv.Env.Load(); // Loading env - configuration
         _client = new DiscordSocketClient();
-        _config = JsonConvert.DeserializeObject(File.ReadAllText("config.json")) ?? null;
         _commandService = new CommandService();
-        Ticker();
-        
-        if (_config is null)
-        {
-            Console.WriteLine("Config not provided :(");
-            return;
-        }
 
         _commandHandler = new CommandHandler(_client, _commandService);
         _commandHandler.InstallCommandsAsync();
@@ -59,22 +67,8 @@ public class Program
 
     private Task Ready()
     {
-        var guilds = _client.Guilds.ToList();
-        // guilds.ForEach(async delegate(SocketGuild guild)
-        // {
-        //     // Console.WriteLine(guild.Name);
-        //     // Console.WriteLine(guild.GetUsersAsync());
-        //     // var users = guild.Users.ToList();
-        //     // users.ForEach((SocketGuildUser user) =>
-        //     // {
-        //     //     Console.WriteLine(user.DisplayName);
-        //     // });
-        //     var users = await guild.GetUsersAsync().FlattenAsync();
-        //     foreach (var guildUser in users)
-        //     {
-        //         Console.WriteLine(guildUser.DisplayName);
-        //     }
-        // });
+        Ticker();
+        GetUsersList();
         return Task.CompletedTask;
     }
 
