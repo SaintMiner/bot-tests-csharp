@@ -9,7 +9,7 @@ public class PingModule : ModuleBase<SocketCommandContext>
 
     [Command("ping")]
     [Summary("Replies with pong")]
-    public Task SayAsync()
+    public Task PingAsync()
     {
         return ReplyAsync(localization.Pong);
     }
