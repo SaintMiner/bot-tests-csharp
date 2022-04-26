@@ -14,7 +14,7 @@ public class Program
 
     public static Task Main(string[] args) => new Program().MainAsync();
 
-    /* Starting ticker every configured seconds */
+    /* Starting ticker - to tick every configured seconds */
     public async Task Ticker()
     {
         while (true)
@@ -46,13 +46,13 @@ public class Program
     /* Starting bot */
     public async Task MainAsync()
     {
+        new DatabaseConnection();
         DotNetEnv.Env.Load(); // Loading env - configuration
         _client = new DiscordSocketClient();
         _commandService = new CommandService();
 
         _commandHandler = new CommandHandler(_client, _commandService);
         _commandHandler.InstallCommandsAsync();
-
 
         _client.Log += Log;
         _client.Connected += Connected;
